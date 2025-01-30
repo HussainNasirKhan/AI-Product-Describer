@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Description Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0D4723;
+            --primary-light: #1a5d32;
+            --primary-dark: #0a3519;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .brand-primary {
+            background-color: var(--primary-color);
+        }
+
+        .brand-primary-text {
+            color: var(--primary-color);
+        }
+
+        .brand-border {
+            border-color: var(--primary-color);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .dropzone {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            border-radius: 10px;
+        }
+
+        .dropzone.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(13, 71, 35, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+        }
+
+        .spinner {
+            border: 3px solid rgba(13, 71, 35, 0.1);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .description-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .description-heading {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .description-content {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold brand-primary-text mb-4">Product Description Generator</h1>
+            <p class="text-gray-600 text-lg">Transform Product Images into Compelling Descriptions with AI</p>
+            <div class="h-1 w-24 brand-primary mx-auto mt-4 rounded"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="card p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left Column: Upload Section -->
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4 brand-primary-text">Upload Product Image</h2>
+                        <div id="dropzone" class="dropzone p-8">
+                            <div id="preview-container" class="hidden space-y-4">
+                                <img id="image-preview" src="" alt="Preview" class="max-w-full h-auto mx-auto rounded-lg shadow">
+                                <button id="remove-image" class="w-full py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200">
+                                    Remove Image
+                                </button>
+                            </div>
+                            <div id="upload-prompt" class="text-center space-y-4">
+                                <div class="brand-primary-text text-5xl">📸</div>
+                                <p class="text-gray-600">Drag and drop your product image here</p>
+                                <p class="text-sm text-gray-500">or</p>
+                                <button class="btn-primary text-white py-2 px-6 rounded-lg hover:shadow-lg transition duration-200">
+                                    Browse Files
+                                </button>
+                                <input type="file" id="file-input" class="hidden" accept="image/*">
+                            </div>
+                        </div>
+                        <div id="error-message" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2 brand-primary-text">Supported Formats</h3>
+                        <p class="text-gray-600">JPG, PNG, JPEG, WEBP</p>
+                        <p class="text-sm text-gray-500 mt-2">Maximum file size: 16MB</p>
+                    </div>
+                </div>
+
+                <!-- Right Column: Description Section -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-semibold brand-primary-text">Generated Description</h2>
+                    </div>
+                    <div class="p-6">
+                        <div id="loading" class="hidden">
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <div class="spinner"></div>
+                                <p class="text-gray-600">Generating description...</p>
+                                <div class="w-full bg-gray-200 rounded-full">
+                                    <div class="progress-bar rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="description-container" class="hidden">
+                            <div id="description-text" class="prose max-w-none text-gray-700 space-y-4">
+                                <!-- Description content will be inserted here -->
+                            </div>
+                            <div class="border-t pt-4 mt-6">
+                                <div id="metadata" class="grid grid-cols-1 gap-2 text-sm text-gray-500">
+                                    <!-- Metadata will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div id="upload-prompt-text" class="text-center text-gray-500 py-12">
+                            <p>Upload a product image to generate a description</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-sm text-gray-500">
+            <p>Powered by Llama-3.2-90B Vision Language Model</p>
+        </div>
+    </div>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const uploadPrompt = document.getElementById('upload-prompt');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image');
+        const errorMessage = document.getElementById('error-message');
+        const loading = document.getElementById('loading');
+        const descriptionContainer = document.getElementById('description-container');
+        const descriptionText = document.getElementById('description-text');
+        const metadata = document.getElementById('metadata');
+        const uploadPromptText = document.getElementById('upload-prompt-text');
+        const progressBar = document.querySelector('.progress-bar');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => {
+                dropzone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => {
+                dropzone.classList.remove('dragover');
+            });
+        });
+
+        dropzone.addEventListener('drop', handleDrop);
+        dropzone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        removeImageBtn.addEventListener('click', resetUpload);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    showPreview(file);
+                    uploadImage(file);
+                } else {
+                    showError('Please upload an image file');
+                }
+            }
+        }
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                imagePreview.src = reader.result;
+                previewContainer.classList.remove('hidden');
+                uploadPrompt.classList.add('hidden');
+                hideError();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            showLoading();
+            simulateProgress();
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate description');
+                }
+
+                showDescription(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function simulateProgress() {
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 90) {
+                    clearInterval(interval);
+                } else {
+                    width++;
+                    progressBar.style.width = width + '%';
+                }
+            }, 50);
+        }
+
+        function showDescription(data) {
+        // Parse and format the description
+        let formattedDescription = data.description
+            // Remove all standalone asterisks
+            .replace(/\s\*\s/g, ' ')
+            // Format headings while removing asterisks
+            .replace(/\*\*(.*?):\*\*/g, '<h3 class="text-2xl font-semibold text-gray-800 mt-6 mb-3">$1</h3>')
+            // Remove any remaining asterisks
+            .replace(/\*\*/g, '')
+            // Split into paragraphs but preserve the headings
+            .split('\n')
+            .map(paragraph => {
+                paragraph = paragraph.trim();
+                if (!paragraph) return '';
+                // If it's not a heading (doesn't contain h3 tag), wrap in p tag
+                if (!paragraph.includes('<h3')) {
+                    return `<p class="text-gray-600 mb-4 leading-relaxed">${paragraph}</p>`;
+                }
+                return paragraph;
+            })
+            .join('');
+
+        // Add the main heading
+        formattedDescription = `
+            <div class="space-y-4">
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Product Description</h2>
+                ${formattedDescription}
+            </div>
+        `;
+
+        descriptionText.innerHTML = formattedDescription;
+
+        // Update metadata with better formatting
+        metadata.innerHTML = `
+            <div class="space-y-2">
+                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span class="font-medium">Processing Time:</span>
+                    <span>${data.metadata.processing_time}</span>
+                </div>
+                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span class="font-medium">Model:</span>
+                    <span>${data.metadata.model}</span>
+                </div>
+                ${data.metadata.tokens_used ? `
+                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span class="font-medium">Tokens Used:</span>
+                    <span>${data.metadata.tokens_used}</span>
+                </div>` : ''}
+            </div>
+        `;
+
+        descriptionContainer.classList.remove('hidden');
+        uploadPromptText.classList.add('hidden');
+    }
+
+        function resetUpload() {
+            imagePreview.src = '';
+            previewContainer.classList.add('hidden');
+            uploadPrompt.classList.remove('hidden');
+            descriptionContainer.classList.add('hidden');
+            uploadPromptText.classList.remove('hidden');
+            fileInput.value = '';
+            hideError();
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        function showLoading() {
+            loading.classList.remove('hidden');
+            descriptionContainer.classList.add('hidden');
+            uploadPromptText.classList.add('hidden');
+            progressBar.style.width = '0%';
+        }
+
+        function hideLoading() {
+            loading.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
